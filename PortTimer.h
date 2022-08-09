@@ -194,10 +194,9 @@ namespace fly
                             continue;
                         handler_t handler = std::move(info->handler);
                         info->handler = nullptr;
-                        if (handler)
-                        {
-                            handler();
-                        }
+                       
+                        handler();  // timer callback
+                        
                         if (info->handler == nullptr)  // meaning timer is not reset in the callback
                         {
                             info->valid = false;
@@ -279,9 +278,11 @@ namespace fly
 
     inline bool Timer::ExpiresAt(const timestamp& when, handler_t handler)
     {
+        if (!handler)
+            return false;
         std::lock_guard<decltype(m_info->timer_mutex)> lk(m_info->timer_mutex);
         // cancel first
-        if (m_info->valid)
+        if (m_info->valid && m_info->handler)
         {
             if (m_info->expiry == when)     // same expiry has been scheduled, just replace the handler
             {
