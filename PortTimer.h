@@ -165,7 +165,7 @@ namespace fly
                         else
                         {
                             auto when = m_timers.begin()->first.first;
-                            if (std::chrono::steady_clock::now() < when)
+                            if (clock::now() < when)
                             {
                                 m_condition.wait_until(lk, when);
                             }
