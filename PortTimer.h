@@ -48,7 +48,7 @@ namespace fly
 
     using handler_t = std::function<void()>;
     using clock = std::chrono::steady_clock;
-    using timestamp = std::chrono::time_point<clock>;
+    using timestamp = decltype(clock::now());
 
     class Timer
     {
@@ -120,9 +120,10 @@ namespace fly
             bool Add(const std::shared_ptr<Timer::TimerInfo>& info)
             {
                 TimerKey key{ info->expiry, info->id };
+                bool earliestChanged = false;
                 {
                     std::lock_guard<std::mutex> lk(m_mutex);
-                    bool earliestChanged = false;
+                   
                     auto it = m_timers.begin();
                     if (it == m_timers.end() || info->expiry < it->first.first)
                     {
@@ -134,10 +135,10 @@ namespace fly
                     {
                         return false;
                     }
-                    if (earliestChanged)
-                    {
-                        m_condition.notify_one();
-                    }
+                }
+                if (earliestChanged)
+                {
+                    m_condition.notify_one();
                 }
                 return true;
             }
